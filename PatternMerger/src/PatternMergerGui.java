@@ -43,6 +43,7 @@ public class PatternMergerGui {
 	static JFrame mainFrame = new JFrame("PatternMerger");
 	static PagePanel panel = new PagePanel();
 	JButton merge;
+	private static int endPage;
 	private static boolean lastrowfirst;
 	private static BufferedImage finalImage;
 	private static PDFFile pdffile;
@@ -50,7 +51,7 @@ public class PatternMergerGui {
 	private static RandomAccessFile raf;
 	static JLabel picLabel;
 
-
+ 
 	static String filename; 
 	static int overlapSides;
 	static int overlapTopBottom;
@@ -84,10 +85,10 @@ public class PatternMergerGui {
 		JPanel inner = new JPanel();
 		inner.setLayout(new GridLayout(1, 2));
 
-		JButton button = new JButton("Merge Pattern");
+		JButton button = new JButton("Zusammenkleben");
 		inner.add(button);
 		button.addActionListener(new CombineActionListener(mainFrame));
-		JButton save = new JButton("Save Pattern");
+		JButton save = new JButton("Speichern");
 		inner.add(save);
 		save.addActionListener(new SaveActionListener(mainFrame));
 		mainFrame.add(inner,BorderLayout.PAGE_END);
@@ -98,8 +99,14 @@ public class PatternMergerGui {
 	}
 
 	private static void combine() {
-
-
+		
+		if(numPagesinRow == 1){
+			int ok = okcancel("Es ist nur eine Seite pro Reihe angegeben, trotzdem fortfahren?" );
+			if(ok != 0){
+				return;
+			}
+		}
+	
 		try {
 
 
@@ -113,7 +120,7 @@ public class PatternMergerGui {
 			for(int i = 0; i < numPages; i++){
 
 				for(int j = 0; j < numPagesinRow; j++){
-					if(lstartPage > numPages){
+					if(lstartPage > numPages || startPage > endPage){
 						break;
 					}
 
@@ -245,9 +252,10 @@ public class PatternMergerGui {
 		}
 
 		public synchronized void actionPerformed(ActionEvent actionEvent) {
-			
+			values.update();
+			picLabel.setIcon(new ImageIcon("./waiting.gif"));
 			combine();
-
+			
 
 
 		}
@@ -325,6 +333,9 @@ public class PatternMergerGui {
 			}
 
 			numPages = pdffile.getNumPages();
+			if(endPage == -1){
+				endPage = numPages;
+			}
 			numRows= (int) Math.ceil((double)(numPages-skipPages)/numPagesinRow);
 		
 			PDFPage hpage=pdffile.getPage(startPage);
@@ -380,5 +391,10 @@ public class PatternMergerGui {
 	public void setlastrowfirst(boolean selected) {
 		lastrowfirst = selected;
 
+	}
+
+	public void setEndPage(Integer givenendPage) {
+		
+		endPage = givenendPage;
 	}
 }

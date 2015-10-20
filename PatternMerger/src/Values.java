@@ -19,11 +19,12 @@ public class Values extends JPanel {
 	JButton	merge;
 	PatternMergerGui pm;
 	JTextField inputFile;
-	JTextField fieldOverlapSide;
+	private JFormattedTextField fieldOverlapSide;
 	private JFormattedTextField fieldOverlapTB;
 	private JFormattedTextField fieldnuminRow;
 	private JFormattedTextField fieldStartPage;
 	private JCheckBox lastrowfirst;
+	private JFormattedTextField fieldEndPage;
 	/**
 	 * 
 	 */
@@ -32,7 +33,7 @@ public class Values extends JPanel {
 	public void buttons(PatternMergerGui patternMergerGui) {
 		try {
 			pm = patternMergerGui;
-			GridLayout gridLayout = new GridLayout(2,1);
+			GridLayout gridLayout = new GridLayout(3,1);
 			this.setLayout(gridLayout);
 
 			//this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
@@ -43,7 +44,7 @@ public class Values extends JPanel {
 			inputFile = new JFormattedTextField();
 			inputFile.setName("input File");
 			inputFile.setText("Pfad zur Input Datei");
-
+			inputFile.setColumns(30);
 			JLabel inputFilelable = new JLabel("Input Datei: ");
 
 			innerFile.add(inputFilelable);
@@ -51,11 +52,11 @@ public class Values extends JPanel {
 			inputFile.addActionListener(new ActionListener() {
 
 				public void actionPerformed(ActionEvent arg0) {
-					buttonMergeClicked();
+					newFieldInput();
 
 				}
 
-				private void buttonMergeClicked() {
+				private void newFieldInput() {
 
 
 					pm.setFilename(inputFile.getText());
@@ -70,11 +71,11 @@ public class Values extends JPanel {
 			open.addActionListener(new ActionListener() {
 
 				public void actionPerformed(ActionEvent arg0) {
-					buttonMergeClicked();
+					newFieldInput();
 
 				}
 
-				private void buttonMergeClicked() {
+				private void newFieldInput() {
 					final JFileChooser fc = new JFileChooser();
 
 					//In response to a button click:
@@ -97,21 +98,24 @@ public class Values extends JPanel {
 			//----------------- Eingabe Werte---------------
 			JPanel inner = new JPanel();
 			inner.setLayout(new FlowLayout());
+			NumberFormat overlapFormat = NumberFormat.getNumberInstance();
+			overlapFormat.setMinimumFractionDigits(1);
+			
 
 			NumberFormat numberInstance = NumberFormat.getNumberInstance();
-			fieldOverlapSide = new JFormattedTextField(numberInstance);
-
+			fieldOverlapSide = new JFormattedTextField(overlapFormat);
+			fieldOverlapSide.setColumns(4);
 			fieldOverlapSide.setName("overlapSides");
-			fieldOverlapSide.setText(String.valueOf(0.0));
+			fieldOverlapSide.setValue(0.0);
 			JLabel Sidenamelable = new JLabel("Überlappung Seite in cm:");
 			fieldOverlapSide.addActionListener(new ActionListener() {
 
 				public void actionPerformed(ActionEvent arg0) {
-					buttonMergeClicked();
+					newFieldInput();
 
 				}
 
-				private void buttonMergeClicked() {
+				private void newFieldInput() {
 
 
 					pm.setOverlapSides((int) Math.round(Float.valueOf(fieldOverlapSide.getText())/2.54*72));
@@ -122,19 +126,20 @@ public class Values extends JPanel {
 
 			inner.add(Sidenamelable, BorderLayout.CENTER);
 			inner.add(fieldOverlapSide, BorderLayout.CENTER);
-
-			fieldOverlapTB = new JFormattedTextField(numberInstance);
+			
+			fieldOverlapTB = new JFormattedTextField(overlapFormat);
+			fieldOverlapTB.setColumns(4);
 			fieldOverlapTB.setName("overlapTB");
-			fieldOverlapTB.setText(String.valueOf(0.0));
+			fieldOverlapTB.setValue(0.0);
 			JLabel TBnamelable = new JLabel("Überlappung in cm:");
 			fieldOverlapTB.addActionListener(new ActionListener() {
 
 				public void actionPerformed(ActionEvent arg0) {
-					buttonMergeClicked();
+					newFieldInput();
 
 				}
 
-				private void buttonMergeClicked() {
+				private void newFieldInput() {
 
 
 					pm.setOverlapTopBottom((int) Math.round(Float.valueOf(fieldOverlapTB.getText())/2.54*72));
@@ -145,27 +150,45 @@ public class Values extends JPanel {
 			inner.add(TBnamelable, BorderLayout.CENTER);
 			inner.add(fieldOverlapTB, BorderLayout.CENTER);
 
-
+			
 			fieldnuminRow = new JFormattedTextField(numberInstance);
+			fieldnuminRow.setColumns(3);
 			fieldnuminRow.setName("numInRow");
 			fieldnuminRow.setText(String.valueOf(1));
 			JLabel NiRnamelable = new JLabel("Anzahl der Seiten pro Reihe:");
+			fieldnuminRow.addActionListener(new ActionListener() {
 
+				public void actionPerformed(ActionEvent arg0) {
+					newFieldInput();
+
+				}
+
+				private void newFieldInput() {
+
+
+					pm.setNumPagesinRow(Integer.valueOf(fieldnuminRow.getText()));
+					pm.showPreview();
+				}
+
+			});
+			
+			
 			inner.add(NiRnamelable, BorderLayout.CENTER);
 			inner.add(fieldnuminRow, BorderLayout.CENTER);
-
+			
 			fieldStartPage = new JFormattedTextField(numberInstance);
-			fieldStartPage.setName("overlapTB");
+			fieldStartPage.setColumns(3);
+			fieldStartPage.setName("startPage");
 			fieldStartPage.setText(String.valueOf(1));
 			JLabel startPagelable = new JLabel("Start Seite:");
 			fieldStartPage.addActionListener(new ActionListener() {
 
 				public void actionPerformed(ActionEvent arg0) {
-					buttonMergeClicked();
+					newFieldInput();
 
 				}
 
-				private void buttonMergeClicked() {
+				private void newFieldInput() {
 
 
 					pm.setStartPage(Integer.valueOf(fieldStartPage.getText()));
@@ -175,19 +198,44 @@ public class Values extends JPanel {
 			});
 			inner.add(startPagelable, BorderLayout.CENTER);
 			inner.add(fieldStartPage, BorderLayout.CENTER);
+			
+			fieldEndPage = new JFormattedTextField(numberInstance);
+			fieldEndPage.setColumns(3);
+			fieldEndPage.setName("endPage");
+			fieldEndPage.setText(String.valueOf(-1));
+			JLabel endPagelable = new JLabel("Letzte Seite:");
+			fieldEndPage.addActionListener(new ActionListener() {
+
+				public void actionPerformed(ActionEvent arg0) {
+					newFieldInput();
+
+				}
+
+				private void newFieldInput() {
+
+
+					pm.setEndPage(Integer.valueOf(fieldEndPage.getText()));
+					pm.showPreview();
+				}
+
+			});
+			inner.add(endPagelable, BorderLayout.CENTER);
+			inner.add(fieldEndPage, BorderLayout.CENTER);
 
 			lastrowfirst = new JCheckBox("Letzte Reihe zuerst");
 			inner.add(lastrowfirst);
-
+			
+			JPanel thirdrow = new JPanel();
+			thirdrow.setLayout(new FlowLayout());
 			JButton merge = new JButton("update Seitenvorschau");
 			merge.addActionListener(new ActionListener() {
 
 				public void actionPerformed(ActionEvent arg0) {
-					buttonMergeClicked();
+					buttonUpdateClicked();
 
 				}
 
-				private void buttonMergeClicked() {
+				private void buttonUpdateClicked() {
 					if(inputFile.getText().equalsIgnoreCase("Pfad zur Input Datei")){
 						return;
 					}
@@ -196,6 +244,7 @@ public class Values extends JPanel {
 					pm.setOverlapSides((int) Math.round(Float.valueOf(fieldOverlapSide.getText())/2.54*72));
 					pm.setOverlapTopBottom((int) Math.round(Float.valueOf(fieldOverlapTB.getText())/2.54*72));
 					pm.setStartPage(Integer.valueOf(fieldStartPage.getText()));
+					pm.setEndPage(Integer.valueOf(fieldEndPage.getText()));
 					pm.showPreview();
 					pm.setlastrowfirst(lastrowfirst.isSelected());
 				}
@@ -203,8 +252,9 @@ public class Values extends JPanel {
 			});
 
 
-			inner.add(merge, BorderLayout.CENTER);
+			thirdrow.add(merge, BorderLayout.CENTER);
 			this.add(inner);
+			this.add(thirdrow);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -220,6 +270,7 @@ public class Values extends JPanel {
 		pm.setOverlapSides((int) Math.round(Float.valueOf(fieldOverlapSide.getText())/2.54*72));
 		pm.setOverlapTopBottom((int) Math.round(Float.valueOf(fieldOverlapTB.getText())/2.54*72));
 		pm.setStartPage(Integer.valueOf(fieldStartPage.getText()));
+		pm.setEndPage(Integer.valueOf(fieldEndPage.getText()));
 		pm.showPreview();
 		pm.setlastrowfirst(lastrowfirst.isSelected());
 	}
