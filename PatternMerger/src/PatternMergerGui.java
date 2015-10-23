@@ -44,7 +44,7 @@ public class PatternMergerGui {
 	static PagePanel panel = new PagePanel();
 	JButton merge;
 	private static int endPage;
-	private static boolean lastrowfirst;
+	private static boolean lastrowfirst = false;
 	private static BufferedImage finalImage;
 	private static PDFFile pdffile;
 	private static  Rectangle rect;
@@ -138,7 +138,7 @@ public class PatternMergerGui {
 							true 
 							);
 
-
+					picLabel.setIcon(new ImageIcon(img));
 
 					BufferedImage bufferedImage = new BufferedImage(rect.width, rect.height, BufferedImage.TYPE_INT_RGB);
 					Graphics g = bufferedImage.createGraphics();
@@ -345,9 +345,9 @@ public class PatternMergerGui {
 			Graphics g1 = finalImage.getGraphics();
 			g1.setColor(Color.white);
 			g1.fillRect(0, 0, finalImage.getWidth(), finalImage.getHeight());
-
+			System.out.println(hpage.getBBox().getWidth()-2*overlapSides + " " + hpage.getBBox().getWidth() + " " + overlapSides);
 			//part to copie
-			rect = new Rectangle(0, 0,
+			rect = new Rectangle(overlapSides, overlapTopBottom,
 					(int) hpage.getBBox().getWidth()-2*overlapSides,
 					(int) hpage.getBBox().getHeight()-2*overlapTopBottom);
 			//hole page for preview
@@ -366,7 +366,7 @@ public class PatternMergerGui {
 					);
 
 
-			BufferedImage bufferedImage = new BufferedImage(rect.width, rect.height, BufferedImage.TYPE_INT_RGB);
+			BufferedImage bufferedImage = new BufferedImage(pagerect.width, pagerect.height, BufferedImage.TYPE_INT_RGB);
 			Graphics g = bufferedImage.createGraphics();
 			g.drawImage(himg, 0, 0, null);
 			//zeichen auswahlbereich

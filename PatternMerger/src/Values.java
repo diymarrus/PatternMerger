@@ -117,8 +117,8 @@ public class Values extends JPanel {
 
 				private void newFieldInput() {
 
-
-					pm.setOverlapSides((int) Math.round(Float.valueOf(fieldOverlapSide.getText())/2.54*72));
+					
+					pm.setOverlapSides((int) Math.round(Float.valueOf(fieldOverlapSide.getText().replace(",", "."))/2.54*72));
 					pm.showPreview();
 				}
 
@@ -142,7 +142,7 @@ public class Values extends JPanel {
 				private void newFieldInput() {
 
 
-					pm.setOverlapTopBottom((int) Math.round(Float.valueOf(fieldOverlapTB.getText())/2.54*72));
+					pm.setOverlapTopBottom((int) Math.round(Float.valueOf(fieldOverlapTB.getText().replace(",", "."))/2.54*72));
 					pm.showPreview();
 				}
 
@@ -241,8 +241,8 @@ public class Values extends JPanel {
 					}
 					pm.setFilename(inputFile.getText());
 					pm.setNumPagesinRow(Integer.valueOf(fieldnuminRow.getText()));
-					pm.setOverlapSides((int) Math.round(Float.valueOf(fieldOverlapSide.getText())/2.54*72));
-					pm.setOverlapTopBottom((int) Math.round(Float.valueOf(fieldOverlapTB.getText())/2.54*72));
+					pm.setOverlapSides((int) Math.round(Float.valueOf(fieldOverlapSide.getText().replace(",", "."))/2.54*72));
+					pm.setOverlapTopBottom((int) Math.round(Float.valueOf(fieldOverlapTB.getText().replace(",", "."))/2.54*72));
 					pm.setStartPage(Integer.valueOf(fieldStartPage.getText()));
 					pm.setEndPage(Integer.valueOf(fieldEndPage.getText()));
 					pm.showPreview();
@@ -267,8 +267,8 @@ public class Values extends JPanel {
 	public void update() {
 		pm.setFilename(inputFile.getText());
 		pm.setNumPagesinRow(Integer.valueOf(fieldnuminRow.getText()));
-		pm.setOverlapSides((int) Math.round(Float.valueOf(fieldOverlapSide.getText())/2.54*72));
-		pm.setOverlapTopBottom((int) Math.round(Float.valueOf(fieldOverlapTB.getText())/2.54*72));
+		pm.setOverlapSides((int) Math.round(Float.valueOf(fieldOverlapSide.getText().replace(",", "."))/2.54*72));
+		pm.setOverlapTopBottom((int) Math.round(Float.valueOf(fieldOverlapTB.getText().replace(",", "."))/2.54*72));
 		pm.setStartPage(Integer.valueOf(fieldStartPage.getText()));
 		pm.setEndPage(Integer.valueOf(fieldEndPage.getText()));
 		pm.showPreview();
