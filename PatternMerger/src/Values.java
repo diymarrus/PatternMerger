@@ -3,9 +3,11 @@ import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.text.NumberFormat;
-
+import java.util.Locale;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -15,16 +17,21 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-public class Values extends JPanel {
+public class Values extends JPanel implements PropertyChangeListener{
 	JButton	merge;
 	PatternMergerGui pm;
 	JTextField inputFile;
-	private JFormattedTextField fieldOverlapSide;
-	private JFormattedTextField fieldOverlapTB;
+	private JFormattedTextField fieldOverlapRSide;
+	private JFormattedTextField fieldOverlapLSide;
+	
+	private JFormattedTextField fieldOverlapTop;
+	private JFormattedTextField fieldOverlapBottom;
+
 	private JFormattedTextField fieldnuminRow;
 	private JFormattedTextField fieldStartPage;
 	private JCheckBox lastrowfirst;
 	private JFormattedTextField fieldEndPage;
+
 	/**
 	 * 
 	 */
@@ -36,10 +43,8 @@ public class Values extends JPanel {
 			GridLayout gridLayout = new GridLayout(3,1);
 			this.setLayout(gridLayout);
 
-			//this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 
 			JPanel innerFile = new JPanel();
-			//innerFile.setLayout(new GridLayout(1, 2, 10, 0));
 
 			inputFile = new JFormattedTextField();
 			inputFile.setName("input File");
@@ -98,17 +103,19 @@ public class Values extends JPanel {
 			//----------------- Eingabe Werte---------------
 			JPanel inner = new JPanel();
 			inner.setLayout(new FlowLayout());
-			NumberFormat overlapFormat = NumberFormat.getNumberInstance();
+			NumberFormat overlapFormat = NumberFormat.getNumberInstance(Locale.GERMAN);
 			overlapFormat.setMinimumFractionDigits(1);
-			
-
+			overlapFormat.setParseIntegerOnly(false);
 			NumberFormat numberInstance = NumberFormat.getNumberInstance();
-			fieldOverlapSide = new JFormattedTextField(overlapFormat);
-			fieldOverlapSide.setColumns(4);
-			fieldOverlapSide.setName("overlapSides");
-			fieldOverlapSide.setValue(0.0);
-			JLabel Sidenamelable = new JLabel("Überlappung Seite in cm:");
-			fieldOverlapSide.addActionListener(new ActionListener() {
+			
+			//----------------- Rechte Überlappung---------------
+			fieldOverlapRSide = new JFormattedTextField(overlapFormat);
+			fieldOverlapRSide.setColumns(4);
+			fieldOverlapRSide.setName("overlapRSides");
+			fieldOverlapRSide.setValue(0.0);
+			JLabel Sidenamelable = new JLabel("Rechts cm:");
+			fieldOverlapRSide.addPropertyChangeListener("value" , this);
+			fieldOverlapRSide.addActionListener(new ActionListener() {
 
 				public void actionPerformed(ActionEvent arg0) {
 					newFieldInput();
@@ -118,21 +125,48 @@ public class Values extends JPanel {
 				private void newFieldInput() {
 
 					
-					pm.setOverlapSides((int) Math.round(Float.valueOf(fieldOverlapSide.getText().replace(",", "."))/2.54*72));
+					pm.setOverlapRightSide((int) Math.round(Float.valueOf(fieldOverlapRSide.getText().replace(",", "."))/2.54*72));
 					pm.showPreview();
 				}
 
 			});
 
 			inner.add(Sidenamelable, BorderLayout.CENTER);
-			inner.add(fieldOverlapSide, BorderLayout.CENTER);
+			inner.add(fieldOverlapRSide, BorderLayout.CENTER);
+			//----------------- Linke Überlappung---------------
+			fieldOverlapLSide = new JFormattedTextField(overlapFormat);
+			fieldOverlapLSide.setColumns(4);
+			fieldOverlapLSide.setName("overlapLSides");
+			fieldOverlapLSide.setValue(0.0);
+			JLabel lSidenamelable = new JLabel("Links cm:");
+			fieldOverlapLSide.addPropertyChangeListener("value" , this);
+			fieldOverlapLSide.addActionListener(new ActionListener() {
+
+				public void actionPerformed(ActionEvent arg0) {
+					newFieldInput();
+
+				}
+
+				private void newFieldInput() {
+
+					
+					pm.setOverlapLeftSide((int) Math.round(Float.valueOf(fieldOverlapLSide.getText().replace(",", "."))/2.54*72));
+					pm.showPreview();
+				}
+
+			});
+
+			inner.add(lSidenamelable, BorderLayout.CENTER);
+			inner.add(fieldOverlapLSide, BorderLayout.CENTER);
 			
-			fieldOverlapTB = new JFormattedTextField(overlapFormat);
-			fieldOverlapTB.setColumns(4);
-			fieldOverlapTB.setName("overlapTB");
-			fieldOverlapTB.setValue(0.0);
-			JLabel TBnamelable = new JLabel("Überlappung in cm:");
-			fieldOverlapTB.addActionListener(new ActionListener() {
+			//----------------- Obere Überlappung---------------
+			fieldOverlapTop = new JFormattedTextField(overlapFormat);
+			fieldOverlapTop.setColumns(4);
+			fieldOverlapTop.setName("overlapTB");
+			fieldOverlapTop.setValue(0.0);
+			fieldOverlapTop.addPropertyChangeListener("value" , this);
+			JLabel tnamelable = new JLabel("Oben cm:");
+			fieldOverlapTop.addActionListener(new ActionListener() {
 
 				public void actionPerformed(ActionEvent arg0) {
 					newFieldInput();
@@ -142,20 +176,48 @@ public class Values extends JPanel {
 				private void newFieldInput() {
 
 
-					pm.setOverlapTopBottom((int) Math.round(Float.valueOf(fieldOverlapTB.getText().replace(",", "."))/2.54*72));
+					pm.setOverlapTop((int) Math.round(Float.valueOf(fieldOverlapTop.getText().replace(",", "."))/2.54*72));
 					pm.showPreview();
 				}
 
 			});
-			inner.add(TBnamelable, BorderLayout.CENTER);
-			inner.add(fieldOverlapTB, BorderLayout.CENTER);
+			inner.add(tnamelable, BorderLayout.CENTER);
+			inner.add(fieldOverlapTop, BorderLayout.CENTER);
 
+			//----------------- untere Überlappung---------------
+			fieldOverlapBottom = new JFormattedTextField(overlapFormat);
+			fieldOverlapBottom.setColumns(4);
+			fieldOverlapBottom.setName("overlapTB");
+			fieldOverlapBottom.setValue(0.0);
+			fieldOverlapBottom.addPropertyChangeListener("value" , this);
+			JLabel bnamelable = new JLabel("Unten cm:");
+			fieldOverlapBottom.addActionListener(new ActionListener() {
+
+				public void actionPerformed(ActionEvent arg0) {
+					newFieldInput();
+
+				}
+
+				private void newFieldInput() {
+
+
+					pm.setOverlapBottom((int) Math.round(Float.valueOf(fieldOverlapBottom.getText().replace(",", "."))/2.54*72));
+					pm.showPreview();
+				}
+
+			});
+			inner.add(bnamelable, BorderLayout.CENTER);
+			inner.add(fieldOverlapBottom, BorderLayout.CENTER);
+			
+			
+			
 			
 			fieldnuminRow = new JFormattedTextField(numberInstance);
 			fieldnuminRow.setColumns(3);
 			fieldnuminRow.setName("numInRow");
 			fieldnuminRow.setText(String.valueOf(1));
-			JLabel NiRnamelable = new JLabel("Anzahl der Seiten pro Reihe:");
+			fieldnuminRow.addPropertyChangeListener("value" , this);
+			JLabel NiRnamelable = new JLabel("Seiten pro Reihe:");
 			fieldnuminRow.addActionListener(new ActionListener() {
 
 				public void actionPerformed(ActionEvent arg0) {
@@ -180,6 +242,7 @@ public class Values extends JPanel {
 			fieldStartPage.setColumns(3);
 			fieldStartPage.setName("startPage");
 			fieldStartPage.setText(String.valueOf(1));
+			fieldStartPage.addPropertyChangeListener("value" , this);
 			JLabel startPagelable = new JLabel("Start Seite:");
 			fieldStartPage.addActionListener(new ActionListener() {
 
@@ -203,6 +266,7 @@ public class Values extends JPanel {
 			fieldEndPage.setColumns(3);
 			fieldEndPage.setName("endPage");
 			fieldEndPage.setText(String.valueOf(-1));
+			fieldEndPage.addPropertyChangeListener("value" , this);
 			JLabel endPagelable = new JLabel("Letzte Seite:");
 			fieldEndPage.addActionListener(new ActionListener() {
 
@@ -241,8 +305,10 @@ public class Values extends JPanel {
 					}
 					pm.setFilename(inputFile.getText());
 					pm.setNumPagesinRow(Integer.valueOf(fieldnuminRow.getText()));
-					pm.setOverlapSides((int) Math.round(Float.valueOf(fieldOverlapSide.getText().replace(",", "."))/2.54*72));
-					pm.setOverlapTopBottom((int) Math.round(Float.valueOf(fieldOverlapTB.getText().replace(",", "."))/2.54*72));
+					pm.setOverlapRightSide((int) Math.round(Float.valueOf(fieldOverlapRSide.getText().replace(",", "."))/2.54*72));
+					pm.setOverlapLeftSide((int) Math.round(Float.valueOf(fieldOverlapLSide.getText().replace(",", "."))/2.54*72));
+					pm.setOverlapTop((int) Math.round(Float.valueOf(fieldOverlapTop.getText().replace(",", "."))/2.54*72));
+					pm.setOverlapBottom((int) Math.round(Float.valueOf(fieldOverlapBottom.getText().replace(",", "."))/2.54*72));
 					pm.setStartPage(Integer.valueOf(fieldStartPage.getText()));
 					pm.setEndPage(Integer.valueOf(fieldEndPage.getText()));
 					pm.showPreview();
@@ -263,16 +329,41 @@ public class Values extends JPanel {
 		}
 
 	}
-
+	public void propertyChange(PropertyChangeEvent e) {
+	    Object source = e.getSource();
+	    if (source == fieldOverlapRSide) {
+	    	pm.setOverlapRightSide((int) Math.round(Float.valueOf(fieldOverlapRSide.getText().replace(",", "."))/2.54*72));
+	    } else if (source == fieldOverlapLSide) {
+	    	pm.setOverlapLeftSide((int) Math.round(Float.valueOf(fieldOverlapLSide.getText().replace(",", "."))/2.54*72));
+	    }
+	    else if (source == fieldOverlapTop) {
+	    	pm.setOverlapTop((int) Math.round(Float.valueOf(fieldOverlapTop.getText().replace(",", "."))/2.54*72));
+	    } 
+	    else if (source == fieldOverlapBottom) {
+	    	pm.setOverlapBottom((int) Math.round(Float.valueOf(fieldOverlapBottom.getText().replace(",", "."))/2.54*72));
+	    }
+	    else if (source == fieldnuminRow) {
+	    	pm.setNumPagesinRow(Integer.valueOf(fieldnuminRow.getText()));
+	    }
+	    else if (source == fieldStartPage) {
+	    	pm.setStartPage(Integer.valueOf(fieldStartPage.getText()));
+	    }
+	    else if (source == fieldEndPage) {
+	    	pm.setEndPage(Integer.valueOf(fieldEndPage.getText()));
+	    }
+	}
 	public void update() {
 		pm.setFilename(inputFile.getText());
 		pm.setNumPagesinRow(Integer.valueOf(fieldnuminRow.getText()));
-		pm.setOverlapSides((int) Math.round(Float.valueOf(fieldOverlapSide.getText().replace(",", "."))/2.54*72));
-		pm.setOverlapTopBottom((int) Math.round(Float.valueOf(fieldOverlapTB.getText().replace(",", "."))/2.54*72));
+		pm.setOverlapRightSide((int) Math.round(Float.valueOf(fieldOverlapRSide.getText().replace(",", "."))/2.54*72));
+		pm.setOverlapLeftSide((int) Math.round(Float.valueOf(fieldOverlapLSide.getText().replace(",", "."))/2.54*72));
+		pm.setOverlapTop((int) Math.round(Float.valueOf(fieldOverlapTop.getText().replace(",", "."))/2.54*72));
+		pm.setOverlapBottom((int) Math.round(Float.valueOf(fieldOverlapBottom.getText().replace(",", "."))/2.54*72));
 		pm.setStartPage(Integer.valueOf(fieldStartPage.getText()));
 		pm.setEndPage(Integer.valueOf(fieldEndPage.getText()));
-		pm.showPreview();
 		pm.setlastrowfirst(lastrowfirst.isSelected());
+		pm.showPreview();
+		
 	}
 
 

@@ -25,6 +25,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.WindowConstants;
 import javax.swing.border.LineBorder;
 
@@ -38,7 +39,7 @@ import com.sun.pdfview.PDFPage;
 import com.sun.pdfview.PDFParseException;
 import com.sun.pdfview.PagePanel;
 
-public class PatternMergerGui {
+public class PatternMergerGui{
 
 	static JFrame mainFrame = new JFrame("PatternMerger");
 	static PagePanel panel = new PagePanel();
@@ -53,14 +54,19 @@ public class PatternMergerGui {
 
  
 	static String filename; 
-	static int overlapSides;
-	static int overlapTopBottom;
+
+	static int overlapRightSide;
+	static int overlapLeftSide;
+
+	static int overlapTop;
+	static int overlapBottom;
 	static int numPagesinRow = 1;
 	static int startPage;
 	static private int skipPages;
 	private static int numPages;
 	private static int numRows;
 	static Values values = new Values();
+	
 
 	public void creatGUI(){
 
@@ -78,19 +84,23 @@ public class PatternMergerGui {
 
 		mainFrame.add(values, BorderLayout.PAGE_START);
 
+		
 		picLabel  = new JLabel(new ImageIcon());
-
-		mainFrame.add(picLabel,BorderLayout.CENTER);
+		JScrollPane scrollPane = new JScrollPane(picLabel);
+		mainFrame.add(scrollPane,BorderLayout.CENTER);
 
 		JPanel inner = new JPanel();
 		inner.setLayout(new GridLayout(1, 2));
 
-		JButton button = new JButton("Zusammenkleben");
-		inner.add(button);
-		button.addActionListener(new CombineActionListener(mainFrame));
-		JButton save = new JButton("Speichern");
-		inner.add(save);
-		save.addActionListener(new SaveActionListener(mainFrame));
+		JButton mergeButton = new JButton("Zusammenkleben");
+		inner.add(mergeButton);
+		mergeButton.addActionListener(new CombineActionListener(mainFrame));
+		
+		JButton saveButton = new JButton("Speichern");
+		inner.add(saveButton);
+		saveButton.addActionListener(new SaveActionListener(mainFrame));
+	
+		
 		mainFrame.add(inner,BorderLayout.PAGE_END);
 		//mainFrame.setJMenuBar(menueleiste);
 		mainFrame.setVisible(true);
@@ -125,18 +135,7 @@ public class PatternMergerGui {
 					}
 
 					PDFPage page=pdffile.getPage(lstartPage);
-
-			
-
-					//System.out.println("Using Page " + page.getPageNumber() + " start " + lstartPage + " " + numPages);
-					Image img = page.getImage(
-							rect.width, 
-							rect.height, 
-							rect, 
-							null, 
-							true, 
-							true 
-							);
+					Image img = page.getImage(rect.width, rect.height, rect, null, true, true );
 
 					picLabel.setIcon(new ImageIcon(img));
 
@@ -146,11 +145,13 @@ public class PatternMergerGui {
 					g.drawImage(img, 0, 0, null);
 					g.dispose();
 					
-
+					//Set part of final image with content of current page
 					finalImage.setRGB(x, y, rect.width, rect.height, 
 							bufferedImage.getRGB(0, 0, rect.width, rect.height, null, 0, bufferedImage.getWidth()), 
 							0, bufferedImage.getWidth());
 					raf.close();
+					
+					//swich to next rectangle of Final image 
 					x = x+rect.width;
 					lstartPage++;
 				}
@@ -164,9 +165,9 @@ public class PatternMergerGui {
 				}
 			}
 			System.out.println("read " + lstartPage + " pages");
-			double ratio = rect.getWidth() / rect.getHeight();
-			picLabel.setIcon(new ImageIcon(finalImage.getScaledInstance((int) Math.round(ratio*picLabel.getHeight()), picLabel.getHeight(), 0)));
-			
+			//double ratio = rect.getWidth() / rect.getHeight();
+			//picLabel.setIcon(new ImageIcon(finalImage.getScaledInstance((int) Math.round(ratio*picLabel.getHeight()), picLabel.getHeight(), 0)));
+			picLabel.setIcon(new ImageIcon(finalImage));
 
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -215,6 +216,7 @@ public class PatternMergerGui {
 				ImageIO.write(finalImage, "jpg", jpgFile);
 
 				System.out.println("wrote JPG to " + jpgFile);
+				return;
 			}else{
 				return;
 			}
@@ -282,13 +284,7 @@ public class PatternMergerGui {
 		PatternMergerGui.filename = filename;
 	}
 
-	public void setOverlapSides(int overlapSides) {
-		PatternMergerGui.overlapSides = overlapSides;
-	}
 
-	public void setOverlapTopBottom(int overlapTopBottom) {
-		PatternMergerGui.overlapTopBottom = overlapTopBottom;
-	}
 
 	public void setNumPagesinRow(int numPagesinRow) {
 		PatternMergerGui.numPagesinRow = numPagesinRow;
@@ -345,11 +341,11 @@ public class PatternMergerGui {
 			Graphics g1 = finalImage.getGraphics();
 			g1.setColor(Color.white);
 			g1.fillRect(0, 0, finalImage.getWidth(), finalImage.getHeight());
-			System.out.println(hpage.getBBox().getWidth()-2*overlapSides + " " + hpage.getBBox().getWidth() + " " + overlapSides);
+			//System.out.println(hpage.getBBox().getWidth()-(overlapLeftSide + overlapRightSide) + " " + hpage.getBBox().getWidth() + " " + (overlapLeftSide + overlapRightSide) );
 			//part to copie
-			rect = new Rectangle(overlapSides, overlapTopBottom,
-					(int) hpage.getBBox().getWidth()-2*overlapSides,
-					(int) hpage.getBBox().getHeight()-2*overlapTopBottom);
+			rect = new Rectangle(overlapLeftSide, overlapTop,
+					(int) hpage.getBBox().getWidth()-(overlapLeftSide + overlapRightSide),
+					(int) hpage.getBBox().getHeight()-(overlapTop + overlapBottom));
 			//hole page for preview
 			Rectangle pagerect = new Rectangle(0, 0,
 					(int) hpage.getBBox().getWidth(),
@@ -372,7 +368,7 @@ public class PatternMergerGui {
 			//zeichen auswahlbereich
 			Graphics gh = himg.getGraphics();
 			gh.setColor(Color.RED);
-			gh.drawRect(overlapSides, overlapTopBottom, rect.width, rect.height);
+			gh.drawRect(overlapLeftSide, overlapTop, rect.width, rect.height);
 			g.dispose();
 			
 			
@@ -397,4 +393,24 @@ public class PatternMergerGui {
 		
 		endPage = givenendPage;
 	}
+
+	public void setOverlapRightSide(int round) {
+		overlapRightSide = round;
+		
+	}
+	public void setOverlapLeftSide(int round) {
+		overlapLeftSide = round;
+		
+	}
+
+	public void setOverlapTop(int round) {
+		overlapTop = round;
+		
+	}
+
+	public void setOverlapBottom(int round) {
+		overlapBottom = round;
+		
+	}
+
 }
