@@ -45,7 +45,8 @@ public class PatternMergerGui{
 	static PagePanel panel = new PagePanel();
 	JButton merge;
 	private static int endPage;
-	private static boolean lastrowfirst = false;
+    private static boolean lastrowfirst = false;
+    private static boolean generateA0 = false;
 	private static BufferedImage finalImage;
 	private static PDFFile pdffile;
 	private static  Rectangle rect;
@@ -60,7 +61,9 @@ public class PatternMergerGui{
 
 	static int overlapTop;
 	static int overlapBottom;
-	static int numPagesinRow = 1;
+    static int numPagesinRow = 1;
+    static int maxPagesRow;
+    static int pageDelta;
 	static int startPage;
 	static private int skipPages;
 	private static int numPages;
@@ -126,44 +129,97 @@ public class PatternMergerGui{
 			if(lastrowfirst){
 				y=finalImage.getHeight()-rect.height;
 			}
-			int lstartPage = startPage;
-			for(int i = 0; i < numPages; i++){
+            int lstartPage = startPage;
+            
+            //generate only PDFs that fit on A0 --> max 4 A4 pages per row
+            maxPagesRow = 4;
+            if (generateA0) {
+                if (numPagesinRow > maxPagesRow){
+                    for(int i = 0; i < numPages; i++){
 
-				for(int j = 0; j < numPagesinRow; j++){
-					if(lstartPage > numPages || startPage > endPage){
-						break;
-					}
+                        for(int j = 0; j < maxPagesRow; j++){
+                            if(lstartPage > numPages || startPage > endPage){
+                                break;
+                            }
 
-					PDFPage page=pdffile.getPage(lstartPage);
-					Image img = page.getImage(rect.width, rect.height, rect, null, true, true );
+                            PDFPage page=pdffile.getPage(lstartPage);
+                            Image img = page.getImage(rect.width, rect.height, rect, null, true, true );
 
-					picLabel.setIcon(new ImageIcon(img));
+                            picLabel.setIcon(new ImageIcon(img));
 
-					BufferedImage bufferedImage = new BufferedImage(rect.width, rect.height, BufferedImage.TYPE_INT_RGB);
-					Graphics g = bufferedImage.createGraphics();
+                            BufferedImage bufferedImage = new BufferedImage(rect.width, rect.height, BufferedImage.TYPE_INT_RGB);
+                            Graphics g = bufferedImage.createGraphics();
 
-					g.drawImage(img, 0, 0, null);
-					g.dispose();
-					
-					//Set part of final image with content of current page
-					finalImage.setRGB(x, y, rect.width, rect.height, 
-							bufferedImage.getRGB(0, 0, rect.width, rect.height, null, 0, bufferedImage.getWidth()), 
-							0, bufferedImage.getWidth());
-					raf.close();
-					
-					//swich to next rectangle of Final image 
-					x = x+rect.width;
-					lstartPage++;
-				}
+                            g.drawImage(img, 0, 0, null);
+                            g.dispose();
+                            
+                            //Set part of final image with content of current page
+                            finalImage.setRGB(x, y, rect.width, rect.height, 
+                                    bufferedImage.getRGB(0, 0, rect.width, rect.height, null, 0, bufferedImage.getWidth()), 
+                                    0, bufferedImage.getWidth());
+                            raf.close();
+                            
+                            //swich to next rectangle of Final image 
+                            x = x+rect.width;
+                            lstartPage++;
+                        }
 
-				
-				x =0;
-				if(lastrowfirst){
-					y = y-rect.height;
-				}else{
-					y = y+rect.height;
-				}
-			}
+                        pageDelta = numPagesinRow-maxPagesRow;
+                        lstartPage += (pageDelta-1);
+                        
+                        x =0;
+                        if(lastrowfirst){
+                            y = y-rect.height;
+                        }else{
+                            y = y+rect.height;
+                        }
+                        
+                        i += pageDelta;
+                    }
+
+                } 
+            } else {
+                for(int i = 0; i < numPages; i++){
+
+                    for(int j = 0; j < numPagesinRow; j++){
+                        if(lstartPage > numPages || startPage > endPage){
+                            break;
+                        }
+
+                        PDFPage page=pdffile.getPage(lstartPage);
+                        Image img = page.getImage(rect.width, rect.height, rect, null, true, true );
+
+                        picLabel.setIcon(new ImageIcon(img));
+
+                        BufferedImage bufferedImage = new BufferedImage(rect.width, rect.height, BufferedImage.TYPE_INT_RGB);
+                        Graphics g = bufferedImage.createGraphics();
+
+                        g.drawImage(img, 0, 0, null);
+                        g.dispose();
+                        
+                        //Set part of final image with content of current page
+                        finalImage.setRGB(x, y, rect.width, rect.height, 
+                                bufferedImage.getRGB(0, 0, rect.width, rect.height, null, 0, bufferedImage.getWidth()), 
+                                0, bufferedImage.getWidth());
+                        raf.close();
+                        
+                        //swich to next rectangle of Final image 
+                        x = x+rect.width;
+                        lstartPage++;
+                    }
+
+                    
+                    x =0;
+                    if(lastrowfirst){
+                        y = y-rect.height;
+                    }else{
+                        y = y+rect.height;
+                    }
+                }
+
+            }
+            
+
 			System.out.println("read " + lstartPage + " pages");
 			//double ratio = rect.getWidth() / rect.getHeight();
 			//picLabel.setIcon(new ImageIcon(finalImage.getScaledInstance((int) Math.round(ratio*picLabel.getHeight()), picLabel.getHeight(), 0)));
@@ -387,7 +443,11 @@ public class PatternMergerGui{
 	public void setlastrowfirst(boolean selected) {
 		lastrowfirst = selected;
 
-	}
+    }
+    
+    public void setGenerateA0(boolean selected) {
+        generateA0 = selected;
+    }
 
 	public void setEndPage(Integer givenendPage) {
 		

@@ -29,7 +29,8 @@ public class Values extends JPanel implements PropertyChangeListener{
 
 	private JFormattedTextField fieldnuminRow;
 	private JFormattedTextField fieldStartPage;
-	private JCheckBox lastrowfirst;
+    private JCheckBox lastrowfirst;
+    private JCheckBox generateA0;
 	private JFormattedTextField fieldEndPage;
 
 	/**
@@ -287,7 +288,10 @@ public class Values extends JPanel implements PropertyChangeListener{
 			inner.add(fieldEndPage, BorderLayout.CENTER);
 
 			lastrowfirst = new JCheckBox("Letzte Reihe zuerst");
-			inner.add(lastrowfirst);
+            inner.add(lastrowfirst);
+            
+            generateA0 = new JCheckBox ("Erzeuge max. A0");
+            inner.add(generateA0);
 			
 			JPanel thirdrow = new JPanel();
 			thirdrow.setLayout(new FlowLayout());
@@ -312,7 +316,8 @@ public class Values extends JPanel implements PropertyChangeListener{
 					pm.setStartPage(Integer.valueOf(fieldStartPage.getText()));
 					pm.setEndPage(Integer.valueOf(fieldEndPage.getText()));
 					pm.showPreview();
-					pm.setlastrowfirst(lastrowfirst.isSelected());
+                    pm.setlastrowfirst(lastrowfirst.isSelected());
+                    pm.setGenerateA0(generateA0.isSelected());
 				}
 
 			});
@@ -361,7 +366,8 @@ public class Values extends JPanel implements PropertyChangeListener{
 		pm.setOverlapBottom((int) Math.round(Float.valueOf(fieldOverlapBottom.getText().replace(",", "."))/2.54*72));
 		pm.setStartPage(Integer.valueOf(fieldStartPage.getText()));
 		pm.setEndPage(Integer.valueOf(fieldEndPage.getText()));
-		pm.setlastrowfirst(lastrowfirst.isSelected());
+        pm.setlastrowfirst(lastrowfirst.isSelected());
+        pm.setGenerateA0(generateA0.isSelected());
 		pm.showPreview();
 		
 	}
