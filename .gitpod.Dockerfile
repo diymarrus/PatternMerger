@@ -2,9 +2,9 @@ FROM gitpod/workspace-full
 
 USER gitpod
 
-RUN sudo apt-get -q update && \
-    sudo apt-get install -yq com.sun.pdfview && \
-    sudo rm -rf /var/lib/apt/lists/*
+#RUN sudo apt-get -q update && \
+#    sudo apt-get install -yq com.sun.pdfview && \
+#    sudo rm -rf /var/lib/apt/lists/*
 
 RUN sudo apt-get -q update && \
     sudo apt-get install -yq com.itextpdf && \
