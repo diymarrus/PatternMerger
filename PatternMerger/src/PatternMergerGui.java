@@ -8,6 +8,7 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -45,8 +46,7 @@ public class PatternMergerGui{
 	static PagePanel panel = new PagePanel();
 	JButton merge;
 	private static int endPage;
-    private static boolean lastrowfirst = false;
-    private static boolean generateA0 = false;
+	private static boolean lastrowfirst = false;
 	private static BufferedImage finalImage;
 	private static PDFFile pdffile;
 	private static  Rectangle rect;
@@ -61,13 +61,13 @@ public class PatternMergerGui{
 
 	static int overlapTop;
 	static int overlapBottom;
-    static int numPagesinRow = 1;
-    static int maxPagesRow;
-    static int pageDelta;
+	static int numPagesinRow = 1;
 	static int startPage;
 	static private int skipPages;
 	private static int numPages;
 	private static int numRows;
+
+	private static int numA0;
 	static Values values = new Values();
 	
 
@@ -129,97 +129,44 @@ public class PatternMergerGui{
 			if(lastrowfirst){
 				y=finalImage.getHeight()-rect.height;
 			}
-            int lstartPage = startPage;
-            
-            //generate only PDFs that fit on A0 --> max 4 A4 pages per row
-            maxPagesRow = 4;
-            if (generateA0) {
-                if (numPagesinRow > maxPagesRow){
-                    for(int i = 0; i < numPages; i++){
+			int lstartPage = startPage;
+			for(int i = 0; i < numPages; i++){
 
-                        for(int j = 0; j < maxPagesRow; j++){
-                            if(lstartPage > numPages || startPage > endPage){
-                                break;
-                            }
+				for(int j = 0; j < numPagesinRow; j++){
+					if(lstartPage > numPages || startPage > endPage){
+						break;
+					}
 
-                            PDFPage page=pdffile.getPage(lstartPage);
-                            Image img = page.getImage(rect.width, rect.height, rect, null, true, true );
+					PDFPage page=pdffile.getPage(lstartPage);
+					Image img = page.getImage(rect.width, rect.height, rect, null, true, true );
 
-                            picLabel.setIcon(new ImageIcon(img));
+					picLabel.setIcon(new ImageIcon(img));
 
-                            BufferedImage bufferedImage = new BufferedImage(rect.width, rect.height, BufferedImage.TYPE_INT_RGB);
-                            Graphics g = bufferedImage.createGraphics();
+					BufferedImage bufferedImage = new BufferedImage(rect.width, rect.height, BufferedImage.TYPE_INT_RGB);
+					Graphics g = bufferedImage.createGraphics();
 
-                            g.drawImage(img, 0, 0, null);
-                            g.dispose();
-                            
-                            //Set part of final image with content of current page
-                            finalImage.setRGB(x, y, rect.width, rect.height, 
-                                    bufferedImage.getRGB(0, 0, rect.width, rect.height, null, 0, bufferedImage.getWidth()), 
-                                    0, bufferedImage.getWidth());
-                            raf.close();
-                            
-                            //swich to next rectangle of Final image 
-                            x = x+rect.width;
-                            lstartPage++;
-                        }
+					g.drawImage(img, 0, 0, null);
+					g.dispose();
+					
+					//Set part of final image with content of current page
+					finalImage.setRGB(x, y, rect.width, rect.height, 
+							bufferedImage.getRGB(0, 0, rect.width, rect.height, null, 0, bufferedImage.getWidth()), 
+							0, bufferedImage.getWidth());
+					raf.close();
+					
+					//swich to next rectangle of Final image 
+					x = x+rect.width;
+					lstartPage++;
+				}
 
-                        pageDelta = numPagesinRow-maxPagesRow;
-                        lstartPage += (pageDelta-1);
-                        
-                        x =0;
-                        if(lastrowfirst){
-                            y = y-rect.height;
-                        }else{
-                            y = y+rect.height;
-                        }
-                        
-                        i += pageDelta;
-                    }
-
-                } 
-            } else {
-                for(int i = 0; i < numPages; i++){
-
-                    for(int j = 0; j < numPagesinRow; j++){
-                        if(lstartPage > numPages || startPage > endPage){
-                            break;
-                        }
-
-                        PDFPage page=pdffile.getPage(lstartPage);
-                        Image img = page.getImage(rect.width, rect.height, rect, null, true, true );
-
-                        picLabel.setIcon(new ImageIcon(img));
-
-                        BufferedImage bufferedImage = new BufferedImage(rect.width, rect.height, BufferedImage.TYPE_INT_RGB);
-                        Graphics g = bufferedImage.createGraphics();
-
-                        g.drawImage(img, 0, 0, null);
-                        g.dispose();
-                        
-                        //Set part of final image with content of current page
-                        finalImage.setRGB(x, y, rect.width, rect.height, 
-                                bufferedImage.getRGB(0, 0, rect.width, rect.height, null, 0, bufferedImage.getWidth()), 
-                                0, bufferedImage.getWidth());
-                        raf.close();
-                        
-                        //swich to next rectangle of Final image 
-                        x = x+rect.width;
-                        lstartPage++;
-                    }
-
-                    
-                    x =0;
-                    if(lastrowfirst){
-                        y = y-rect.height;
-                    }else{
-                        y = y+rect.height;
-                    }
-                }
-
-            }
-            
-
+				
+				x =0;
+				if(lastrowfirst){
+					y = y-rect.height;
+				}else{
+					y = y+rect.height;
+				}
+			}
 			System.out.println("read " + lstartPage + " pages");
 			//double ratio = rect.getWidth() / rect.getHeight();
 			//picLabel.setIcon(new ImageIcon(finalImage.getScaledInstance((int) Math.round(ratio*picLabel.getHeight()), picLabel.getHeight(), 0)));
@@ -240,6 +187,11 @@ public class PatternMergerGui{
 		Document document = new Document();
 		com.itextpdf.text.Rectangle recta = new com.itextpdf.text.Rectangle(finalImage.getWidth(), finalImage.getHeight());
 		document.setPageSize(recta);
+
+		Document splitdocument = new Document();
+		com.itextpdf.text.Rectangle splitrecta = new com.itextpdf.text.Rectangle(PageSize.A0.getWidth(), PageSize.A0.getHeight());
+		splitdocument.setPageSize(splitrecta);
+
 		String outputFilname = filename.subSequence(0, filename.lastIndexOf(".")) + "-PatternMerger.pdf";
 		File output = new File(outputFilname);
 		if(output.exists()){
@@ -280,7 +232,61 @@ public class PatternMergerGui{
 
 		if(pagesize.getWidth() > PageSize.A0.getWidth() || pagesize.getHeight() > PageSize.A0.getHeight()){
 
-			JOptionPane.showMessageDialog(mainFrame, "Das Dokument ist größer als A0");
+			//how many A0 files are needed?
+			float i = pagesize.getWidth()/PageSize.A0.getWidth();
+			float j = pagesize.getHeight()/PageSize.A0.getHeight();
+
+			int numA0PagesH = (int) Math.ceil(i);
+			int numA0PagesW = (int) Math.ceil(j);
+
+			String splitOutputFilname = filename.subSequence(0, filename.lastIndexOf(".")) + "-PatternMergerA0.pdf";
+			PdfWriter.getInstance(splitdocument, new FileOutputStream(splitOutputFilname));
+			splitdocument.open();
+			splitdocument.newPage(); 
+
+			int x = 0;
+			int y = 0;
+
+			for (int iterW =0; iterW < numA0PagesW; iterW++) {		
+				for (int iterH = 0; iterH < numA0PagesH; iterH++) {
+
+					splitdocument.newPage();
+
+					int w1 = x*(int) PageSize.A0.getWidth()- x*30;
+					int w2 = (int) PageSize.A0.getWidth() - 30;
+					int h1 = y*(int) PageSize.A0.getHeight() - y*30;
+					int h2 = (int) PageSize.A0.getHeight() - 30;
+
+					if ((w1+w2) >= finalImage.getWidth()) {
+						w2 = finalImage.getWidth() - w1;
+					}
+					if ((h1+h2) >= finalImage.getHeight()) {
+						h2 = finalImage.getHeight() - h1;
+					}
+
+					try {
+						BufferedImage tempImage = finalImage.getSubimage(w1, h1, w2, h2);
+						ByteArrayOutputStream baosImage = new ByteArrayOutputStream();
+						ImageIO.write(tempImage, "png", baosImage);
+						com.itextpdf.text.Image iTextImage = com.itextpdf.text.Image.getInstance(baosImage.toByteArray());
+
+						iTextImage.setAbsolutePosition(10, (int) PageSize.A0.getHeight() - (int) tempImage.getHeight());
+						splitdocument.add((com.itextpdf.text.Element) iTextImage);
+						
+					} catch (Exception e) {
+						//TODO: handle exception
+						e.printStackTrace();
+					}
+
+					x = x + 1;
+				}
+				x = 0;
+				y = y + 1;
+			}
+
+			splitdocument.close();
+			numA0 = numA0PagesH * numA0PagesW;
+			JOptionPane.showMessageDialog(mainFrame, "Das Dokument ist größer als A0, statt dessen ergeben sich " + numA0 + " Dokumente");
 
 		}
 
@@ -296,6 +302,7 @@ public class PatternMergerGui{
 
 		mainFrame.add(panel);
 		document.close();
+
 		System.out.println("wrote PDF");
 	}
 	public static int okcancel(String theMessage) {
@@ -392,17 +399,17 @@ public class PatternMergerGui{
 		
 			PDFPage hpage=pdffile.getPage(startPage);
 
-			finalImage = new BufferedImage((int) hpage.getWidth()*numPagesinRow, (int) hpage.getHeight()*numRows, BufferedImage.TYPE_INT_RGB);
+			finalImage = new BufferedImage((int) (hpage.getWidth()-(overlapLeftSide + overlapRightSide))*numPagesinRow, (int) (hpage.getHeight()-(overlapTop + overlapBottom))*numRows, BufferedImage.TYPE_INT_RGB);
 			//white background
 			Graphics g1 = finalImage.getGraphics();
 			g1.setColor(Color.white);
 			g1.fillRect(0, 0, finalImage.getWidth(), finalImage.getHeight());
 			//System.out.println(hpage.getBBox().getWidth()-(overlapLeftSide + overlapRightSide) + " " + hpage.getBBox().getWidth() + " " + (overlapLeftSide + overlapRightSide) );
-			//part to copie
+			//part to copy
 			rect = new Rectangle(overlapLeftSide, overlapTop,
 					(int) hpage.getBBox().getWidth()-(overlapLeftSide + overlapRightSide),
 					(int) hpage.getBBox().getHeight()-(overlapTop + overlapBottom));
-			//hole page for preview
+			//whole page for preview
 			Rectangle pagerect = new Rectangle(0, 0,
 					(int) hpage.getBBox().getWidth(),
 					(int) hpage.getBBox().getHeight());
@@ -443,11 +450,7 @@ public class PatternMergerGui{
 	public void setlastrowfirst(boolean selected) {
 		lastrowfirst = selected;
 
-    }
-    
-    public void setGenerateA0(boolean selected) {
-        generateA0 = selected;
-    }
+	}
 
 	public void setEndPage(Integer givenendPage) {
 		
